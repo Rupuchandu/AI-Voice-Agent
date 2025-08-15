@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Conversational Voice Assistant</title>
+<style>
+  body {
+    margin: 0;
+    padding: 30px 40px;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1d1d2e;
+    display: flex;
+    justify-content: center;
+    gap: 35px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    background: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-color: rgba(25, 6, 39, 0.75);
+    z-index: -1;
+  }
+  .card {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1.5px solid rgba(155, 89, 182, 0.5);
+    border-radius: 15px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: 25px 30px;
+    width: 360px;
+    max-width: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    animation: fadeInUp 0.8s ease forwards;
+    transition: transform 0.25s, box-shadow 0.25s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover {
+    transform: translateY(-10px) scale(1.03);
+    box-shadow: 0 20px 38px rgba(155, 89, 182, 0.6),
+                inset 0 0 300px 30px rgba(142, 68, 173, 0.35);
+    border-color: rgba(142, 68, 173, 0.6);
+    cursor: pointer;
+    z-index: 1;
+  }
+  @keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  h2 {
+    margin: 0 0 20px 0;
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: 0.05em;
+    color: #d291ff;
+    animation: glowPulse 3s infinite;
+    text-align: center;
+  }
+  @keyframes glowPulse {
+    0%, 100% {
+      text-shadow: 0 0 5px #d291ff, 0 0 20px #a86fff;
+    }
+    50% {
+      text-shadow: 0 0 30px #a86fff, 0 0 20px #d291ff;
+    }
+  }
+  textarea, button {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0 0 0;
+    font-size: 1rem;
+    border-radius: 12px;
+    border: 2px solid #a86fff;
+    box-sizing: border-box;
+  }
+  textarea {
+    background: rgba(255,255,255,0.92);
+    box-shadow: inset 0 0 8px #a86fff55;
+    min-height: 60px;
+    resize: vertical;
+    outline: none;
+  }
+  textarea:focus {
+    border-color: #8e44ad;
+    box-shadow: 0 0 12px #a86fffdd;
+    background: #f8f0fc;
+  }
+  button {
+    background: linear-gradient(135deg, #8e44ad, #a86fff);
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    box-shadow: 0 6px 15px rgba(168, 111, 255, 0.6);
+    transition: background 0.3s, box-shadow 0.3s;
+    user-select: none;
+  }
+  button:disabled {
+    background: #9b8dad;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #71368a, #9b59b6);
+    box-shadow: 0 10px 30px rgba(168, 111, 255, 0.9);
+  }
+  #record-btn {
+    margin-top: 15px;
+  }
+  #record-btn.recording {
+    animation: pulse 1s infinite;
+    background: darkred;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,0,0,0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(255,0,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+  }
+  #text-response, #voice-response {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 12px;
+    min-height: 60px;
+    border: 1.5px solid #a86fff;
+    box-shadow: inset 0 0 12px #a86fffee;
+    white-space: pre-wrap;
+    user-select: text;
+    margin-top: 10px;
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+  /* Responsive */
+  @media (max-width: 400px) {
+    body { padding: 20px; }
+    .card { width: 100%; padding: 20px; }
+    textarea, button { font-size: 0.95rem; }
+  }
+</style>
+</head>
+<body>
+<div class="card" style="max-width: 720px; display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;">
+  <!-- Text Chat -->
+  <div style="flex: 1 1 320px; display: flex; flex-direction: column;">
+    <h2>💬 Text Chat</h2>
+    <textarea id="text-input" placeholder="Type your message..."></textarea>
+    <button id="send-btn">Send</button>
+    <div id="text-response"></div>
+  </div>
+
+  <!-- Voice Chat -->
+  <div style="flex: 1 1 320px; display: flex; flex-direction: column;">
+    <h2>🎤 Voice Chat</h2>
+    <button id="record-btn">🎤 Start Recording</button>
+    <div id="voice-response"></div>
+  </div>
+</div>
+
+<script>
+  // Session ID for context memory
+  let params = new URLSearchParams(window.location.search);
+  let session_id = params.get("session_id");
+  if (!session_id) {
+    session_id = "sess_" + Math.random().toString(36).substr(2,9);
+    window.history.replaceState({}, "", "?session_id="+session_id);
+  }
+
+  // Text chat elements
+  const textInput = document.getElementById('text-input');
+  const sendBtn = document.getElementById('send-btn');
+  const textResp = document.getElementById('text-response');
+
+  // Voice chat elements
+  const recordBtn = document.getElementById('record-btn');
+  const voiceResp = document.getElementById('voice-response');
+
+  // Text chat send handler
+  sendBtn.onclick = async () => {
+    const msg = textInput.value.trim();
+    if (!msg) return alert("Empty!");
+    textResp.textContent = "Thinking...";
+    try {
+      const r = await fetch(`/agent/chat/${session_id}/text`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({text: msg})
+      });
+      const data = await r.json();
+      if (data.error) textResp.textContent = "Error: " + data.error;
+      else {
+        textResp.textContent = data.llm_response;
+        if (data.audio_urls?.length) new Audio(data.audio_urls).play();
+      }
+    } catch {
+      textResp.textContent = "Network or server error";
+    }
+    textInput.value = "";
+  };
+
+  // Voice recording setup
+  let rec, chunks = [];
+  let isRecording = false;
+
+  recordBtn.onclick = async () => {
+    if (!isRecording) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        rec = new MediaRecorder(stream);
+        chunks = [];
+        rec.ondataavailable = e => chunks.push(e.data);
+        rec.onstop = sendAudio;
+        rec.start();
+        isRecording = true;
+        recordBtn.textContent = "⏹ Stop Recording";
+        recordBtn.classList.add('recording');
+        voiceResp.textContent = "Recording...";
+      } catch {
+        voiceResp.textContent = "Microphone access denied.";
+      }
+    } else {
+      rec.stop();
+      isRecording = false;
+      recordBtn.textContent = "🎤 Start Recording";
+      recordBtn.classList.remove('recording');
+    }
+  };
+
+  // Send recorded audio to backend and handle response
+  async function sendAudio() {
+    voiceResp.textContent = "Processing...";
+    const blob = new Blob(chunks, {type:'audio/webm'});
+    const fd = new FormData();
+    fd.append('audio', blob, 'voice.webm');
+    try {
+      const r = await fetch(`/agent/chat/${session_id}`, {
+        method: 'POST',
+        body: fd
+      });
+      const data = await r.json();
+      if (data.error) {
+        voiceResp.textContent = "Error: " + data.error;
+        return;
+      }
+      voiceResp.textContent = `You said: ${data.transcript}\nAI: ${data.llm_response}`;
+      if (data.audio_urls?.length) {
+        new Audio(data.audio_urls).play();
+      }
+    } catch {
+      voiceResp.textContent = "Network or server error";
+    }
+  }
+</script>
+</body>
+</html>
