@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HitmAAN Voice Agent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(160deg, #6a11cb 0%, #2575fc 100%);
+      color: #f0f0f5;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* Sidebar API Keys Panel */
+    #sidebar {
+      background: #292b3e;
+      width: 300px;
+      min-width: 300px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      color: #ccc;
+    }
+    #sidebar h2 {
+      margin-bottom: 12px;
+      color: #f49ac1;
+      font-weight: 700;
+      border-bottom: 1px solid #444;
+      padding-bottom: 8px;
+    }
+    label {
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      display: block;
+    }
+    input[type=text], input[type=password] {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
+      background-color: #1e202a;
+      color: #eee;
+      border: 1px solid #444;
+      outline-offset: 2px;
+      outline-color: transparent;
+      transition: outline-color 0.3s ease;
+    }
+    input[type=text]:focus, input[type=password]:focus {
+      outline-color: #f107a3;
+    }
+    button#saveKeysBtn {
+      background: linear-gradient(45deg, #7b2ff7, #f107a3);
+      border: none;
+      padding: 10px;
+      font-weight: 600;
+      color: white;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgb(247 7 163 / 0.6);
+      transition: background 0.3s ease;
+    }
+    button#saveKeysBtn:hover {
+      background: linear-gradient(45deg, #f107a3, #7b2ff7);
+    }
+
+    /* Main Chat Container */
+    .app-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      background: #1e202a;
+      border-radius: 20px;
+      margin: 20px;
+      padding: 25px;
+      box-shadow: 0 10px 40px rgba(18, 25, 36, 0.85);
+      height: calc(100vh - 40px);
+    }
+    #statusBar {
+      font-size: 1.05rem;
+      color: #a5b3d4;
+      height: 26px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    #skillHint {
+      font-size: 1rem;
+      color: #95cffb;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    #btnContainer {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 10px 24px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      background: linear-gradient(45deg, #7b2ff7, #f107a3);
+      border: none;
+      border-radius: 30px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgb(247 7 163 / 0.4);
+      transition: box-shadow 0.3s ease;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .recording {
+      box-shadow: 0 0 15px 3px #f107a3;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse {
+      from {
+        transform: scale(1);
+      }
+      to {
+        transform: scale(1.05);
+      }
+    }
+    #chatHistory {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      background: #1b1d29;
+      border-radius: 14px;
+      border: 1px solid #33384d;
+      font-size: 1.05rem;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      margin-top: 0;
+    }
+    .chat-message {
+      margin-bottom: 12px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      max-width: 75%;
+      word-break: break-word;
+    }
+    .user-message {
+      background: #2f2f65;
+      align-self: flex-end;
+    }
+    .agent-message {
+      background: #243649;
+      align-self: flex-start;
+      font-style: italic;
+    }
+    .agent-name {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #f49ac1;
+      font-style: normal;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+      }
+      #sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 10px;
+        justify-content: space-around;
+      }
+      #sidebar > * {
+        flex: 1 1 300px;
+      }
+      .app-container {
+        height: 50vh;
+        margin: 10px 10px 0 10px;
+      }
+      #chatHistory {
+        max-height: 100%;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <h2>API Key Configuration</h2>
+    <label for="assemblyKey">AssemblyAI API Key:</label>
+    <input type="password" id="assemblyKey" placeholder="Paste AssemblyAI API key" />
+    <label for="geminiKey">Gemini API Key:</label>
+    <input type="password" id="geminiKey" placeholder="Paste Gemini API key" />
+    <label for="murfKey">Murf API Key:</label>
+    <input type="password" id="murfKey" placeholder="Paste Murf API key" />
+    <label for="openweatherKey">OpenWeather API Key:</label>
+    <input type="password" id="openweatherKey" placeholder="Paste OpenWeather API key" />
+    <button id="saveKeysBtn">Save API Keys</button>
+  </div>
+
+  <div class="app-container">
+    <div id="statusBar">Ready to record</div>
+    <div id="skillHint">
+      Try: <b>"Search the web for latest AI news"</b> or <b>"What's the weather?"</b>
+    </div>
+    <div id="btnContainer">
+      <button id="startBtn">Start Recording</button>
+      <button id="stopBtn" disabled>Stop Recording</button>
+      <button id="downloadBtn" disabled>Download Chat</button>
+    </div>
+    <div id="chatHistory"></div>
+  </div>
+
+  <script>
+    // Load saved API keys if available
+    const savedKeys = {
+      assembly: localStorage.getItem("assemblyKey") || "",
+      gemini: localStorage.getItem("geminiKey") || "",
+      murf: localStorage.getItem("murfKey") || "",
+      openweather: localStorage.getItem("openweatherKey") || ""
+    };
+
+    document.getElementById("assemblyKey").value = savedKeys.assembly;
+    document.getElementById("geminiKey").value = savedKeys.gemini;
+    document.getElementById("murfKey").value = savedKeys.murf;
+    document.getElementById("openweatherKey").value = savedKeys.openweather;
+
+    const saveBtn = document.getElementById("saveKeysBtn");
+    saveBtn.onclick = () => {
+      const aKey = document.getElementById("assemblyKey").value.trim();
+      const gKey = document.getElementById("geminiKey").value.trim();
+      const mKey = document.getElementById("murfKey").value.trim();
+      const oKey = document.getElementById("openweatherKey").value.trim();
+
+      localStorage.setItem("assemblyKey", aKey);
+      localStorage.setItem("geminiKey", gKey);
+      localStorage.setItem("murfKey", mKey);
+      localStorage.setItem("openweatherKey", oKey);
+
+      alert("API keys saved locally! They will be used for the next session.");
+    };
+
+
+    // Voice Agent Logic with API keys from the UI
+
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const statusBar = document.getElementById("statusBar");
+    const chatHistory = document.getElementById("chatHistory");
+
+    let ws, audioCtxMic, mediaStream, processor, source;
+    let isRecording = false;
+    const playbackCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let nextAudioTime = playbackCtx.currentTime;
+
+    let conversationLog = [];
+
+    // Helper Functions
+    function setStatus(txt) {
+      statusBar.textContent = txt;
+    }
+    function autoScroll() {
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+    function addMessage(text, sender = "user") {
+      const div = document.createElement("div");
+      div.className = "chat-message " + (sender === "user" ? "user-message" : "agent-message");
+
+      if (sender === "agent") {
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = "HitmAAN 🤖";
+        nameSpan.className = "agent-name";
+        div.appendChild(nameSpan);
+      }
+
+      div.appendChild(document.createTextNode(text.trim()));
+      chatHistory.appendChild(div);
+
+      conversationLog.push({ role: sender, text: text.trim() });
+      autoScroll();
+
+      downloadBtn.disabled = conversationLog.length === 0;
+      return div;
+    }
+
+    async function safeDecode(byteArray) {
+      try {
+        return await playbackCtx.decodeAudioData(byteArray.buffer);
+      } catch (e) {
+        console.warn("Skipping audio chunk decode error:", e);
+        return null;
+      }
+    }
+
+    async function playBase64Chunk(b64) {
+      if (playbackCtx.state === "suspended") await playbackCtx.resume();
+
+      const byteArray = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      const audioBuffer = await safeDecode(byteArray);
+      if (!audioBuffer) return;
+
+      const src = playbackCtx.createBufferSource();
+      src.buffer = audioBuffer;
+      src.connect(playbackCtx.destination);
+
+      src.start(nextAudioTime);
+      nextAudioTime += audioBuffer.duration;
+
+      src.onended = () => {
+        if (Math.abs(playbackCtx.currentTime - nextAudioTime) < 0.05) {
+          nextAudioTime = playbackCtx.currentTime;
+        }
+      };
+    }
+
+    function getApiKeys() {
+      return {
+        assembly: document.getElementById("assemblyKey").value.trim(),
+        gemini: document.getElementById("geminiKey").value.trim(),
+        murf: document.getElementById("murfKey").value.trim(),
+        openweather: document.getElementById("openweatherKey").value.trim(),
+      };
+    }
+
+    // Start recording
+    startBtn.onclick = async () => {
+      // Validate keys before connecting
+      const keys = getApiKeys();
+      if (!keys.assembly || !keys.gemini || !keys.murf || !keys.openweather) {
+        alert("Please enter all API keys before starting.");
+        return;
+      }
+
+      startBtn.disabled = true;
+      startBtn.classList.add("recording");
+      stopBtn.disabled = false;
+      chatHistory.innerHTML = "";
+      conversationLog = [];
+      setStatus("Connecting...");
+
+      // Pass API keys as URL query parameters for backend to read
+      const params = new URLSearchParams({
+        assemblyKey: keys.assembly,
+        geminiKey: keys.gemini,
+        murfKey: keys.murf,
+        openweatherKey: keys.openweather
+      });
+      ws = new WebSocket(
+        (location.protocol === "https:" ? "wss://" : "ws://") +
+        location.host +
+        "/ws/voice-agent?" +
+        params.toString()
+      );
+      ws.binaryType = "arraybuffer";
+
+      ws.onopen = async () => {
+        setStatus("Recording...");
+        if (playbackCtx.state === "suspended") await playbackCtx.resume();
+      };
+
+      ws.onclose = () => {
+        setStatus("Disconnected.");
+        stopAudio();
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        isRecording = false;
+        nextAudioTime = playbackCtx.currentTime;
+        startBtn.classList.remove("recording");
+      };
+
+      ws.onmessage = (e) => {
+        let msg;
+        try {
+          msg = JSON.parse(e.data);
+        } catch (err) {
+          console.error("Invalid WS message", e.data);
+          return;
+        }
+        switch (msg.type) {
+          case "partial":
+            setStatus("Listening... " + msg.text);
+            break;
+          case "final":
+            addMessage(msg.text, "user");
+            setStatus("Processing...");
+            break;
+          case "llm_response":
+            addMessage(msg.text, "agent");
+            setStatus("HitmAAN responded.");
+            break;
+          case "murf_audio_chunk":
+            playBase64Chunk(msg.audio_b64);
+            break;
+          case "audio_done":
+            setStatus("Done speaking.");
+            nextAudioTime = Math.max(playbackCtx.currentTime, nextAudioTime);
+            break;
+          case "audio_error":
+            setStatus("Audio error: " + msg.error);
+            break;
+        }
+      };
+
+      // Mic streaming setup
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (e) {
+        alert("Microphone access denied or not available.");
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        setStatus("Microphone not available.");
+        return;
+      }
+      audioCtxMic = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+
+      source = audioCtxMic.createMediaStreamSource(mediaStream);
+      processor = audioCtxMic.createScriptProcessor(1024, 1, 1);
+
+      source.connect(processor);
+      processor.connect(audioCtxMic.destination);
+
+      processor.onaudioprocess = (e) => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+        const input = e.inputBuffer.getChannelData(0);
+        const buf = new ArrayBuffer(input.length * 2);
+        const view = new DataView(buf);
+
+        for (let i = 0; i < input.length; i++) {
+          let s = Math.max(-1, Math.min(1, input[i]));
+          view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        }
+
+        ws.send(buf);
+      };
+
+      isRecording = true;
+    };
+
+    // Stop recording
+    stopBtn.onclick = () => {
+      if (!isRecording) return;
+
+      setStatus("Stopping...");
+      if (ws) {
+        ws.onmessage = null;
+        if (ws.readyState === WebSocket.OPEN) ws.close();
+        ws = null;
+      }
+
+      stopAudio();
+
+      startBtn.disabled = false;
+      startBtn.classList.remove("recording");
+      stopBtn.disabled = true;
+      isRecording = false;
+      nextAudioTime = playbackCtx.currentTime;
+    };
+
+    function stopAudio() {
+      if (processor) {
+        processor.disconnect();
+        processor.onaudioprocess = null;
+        processor = null;
+      }
+      if (source) source.disconnect();
+      if (audioCtxMic) {
+        audioCtxMic.close();
+        audioCtxMic = null;
+      }
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream = null;
+      }
+    }
+
+    // Download chat log
+    downloadBtn.onclick = () => {
+      if (conversationLog.length === 0) return;
+
+      const txt = conversationLog
+        .map(e => (e.role === "user" ? "👤 You: " : "🤖 HitmAAN: ") + e.text)
+        .join("\n\n");
+
+      const blob = new Blob([txt], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "conversation.txt";
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
+    // Comment out or delete this section that restores past chat logs:
+window.addEventListener("load", () => {
+  // const saved = localStorage.getItem("hitmaanChatLog");
+  // if (saved) {
+  //   conversationLog = JSON.parse(saved);
+  //   conversationLog.forEach(e => addMessage(e.text, e.role));
+  // }
+});
+
+// Comment out or delete this section that saves chat logs to localStorage:
+window.addEventListener("beforeunload", () => {
+  // localStorage.setItem("hitmaanChatLog", JSON.stringify(conversationLog));
+});
+
+  </script>
+</body>
+</html>
