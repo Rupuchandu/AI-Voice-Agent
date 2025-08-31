@@ -7,9 +7,7 @@
 
   <style>
     /* Reset and base styles */
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
@@ -19,7 +17,6 @@
       height: 100vh;
       overflow: hidden;
     }
-    /* Sidebar API Keys Panel */
     #sidebar {
       background: #292b3e;
       width: 300px;
@@ -72,8 +69,6 @@
     button#saveKeysBtn:hover {
       background: linear-gradient(45deg, #f107a3, #7b2ff7);
     }
-
-    /* Main Chat Container */
     .app-container {
       flex-grow: 1;
       display: flex;
@@ -126,12 +121,8 @@
       animation: pulse 1s infinite alternate;
     }
     @keyframes pulse {
-      from {
-        transform: scale(1);
-      }
-      to {
-        transform: scale(1.05);
-      }
+      from { transform: scale(1); }
+      to { transform: scale(1.05); }
     }
     #chatHistory {
       flex: 1;
@@ -169,11 +160,43 @@
       font-style: normal;
     }
 
-    /* Responsive */
+    /* Murf Branding badge styles */
+    #murfBranding {
+      position: fixed;
+      bottom: 24px;
+      right: 32px;
+      background: linear-gradient(90deg, #f63f83, #2575fc 100%);
+      color: #fff;
+      font-weight: bold;
+      font-size: 1rem;
+      border-radius: 24px;
+      box-shadow: 0 4px 18px rgba(36,30,86,0.18);
+      padding: 10px 22px 10px 16px;
+      z-index: 9999;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.05em;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    #murfBranding:hover {
+      background: linear-gradient(90deg, #2575fc 70%, #f107a3 100%);
+      color: #fff;
+    }
+    .murfLogo {
+      width: 30px;
+      height: 30px;
+      background: url('https://murf.ai/favicon.ico') no-repeat center center;
+      background-size: contain;
+      display: inline-block;
+    }
+    @media (max-width:600px){
+      #murfBranding { right: 8px; bottom: 8px; padding: 6px 18px 6px 10px; font-size: 0.9rem;}
+      .murfLogo { width: 22px; height: 22px;}
+    }
     @media (max-width: 900px) {
-      body {
-        flex-direction: column;
-      }
+      body { flex-direction: column; }
       #sidebar {
         width: 100%;
         flex-direction: row;
@@ -181,17 +204,9 @@
         padding: 10px;
         justify-content: space-around;
       }
-      #sidebar > * {
-        flex: 1 1 300px;
-      }
-      .app-container {
-        height: 50vh;
-        margin: 10px 10px 0 10px;
-      }
-      #chatHistory {
-        max-height: 100%;
-        max-width: 100%;
-      }
+      #sidebar > * { flex: 1 1 300px; }
+      .app-container { height: 50vh; margin: 10px 10px 0 10px; }
+      #chatHistory { max-height: 100%; max-width: 100%; }
     }
   </style>
 </head>
@@ -208,9 +223,7 @@
     <input type="password" id="openweatherKey" placeholder="Paste OpenWeather API key" />
     <button id="saveKeysBtn">Save API Keys</button>
   </div>
-
   <div class="app-container">
-    <div id="statusBar">HitmAAN🤖 (AI Voice Agent)</div>
     <div id="statusBar">Ready to record</div>
     <div id="skillHint">
       Try: <b>"Search the web for latest AI news"</b> or <b>"What's the weather?"</b>
@@ -222,7 +235,18 @@
     </div>
     <div id="chatHistory"></div>
   </div>
-
+  
+  <!-- Murf Branding Badge -->
+  <a id="murfBranding"
+    href="https://murf.ai/api/docs/introduction/overview"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Powered by Murf, Voice API leader"
+  >
+    <span class="murfLogo"></span>
+    Powered by Murf
+  </a>
+  
   <script>
     // Load saved API keys if available
     const savedKeys = {
@@ -251,7 +275,6 @@
 
       alert("API keys saved locally! They will be used for the next session.");
     };
-
 
     // Voice Agent Logic with API keys from the UI
 
@@ -508,21 +531,18 @@
     };
 
     // Comment out or delete this section that restores past chat logs:
-window.addEventListener("load", () => {
-  // const saved = localStorage.getItem("hitmaanChatLog");
-  // if (saved) {
-  //   conversationLog = JSON.parse(saved);
-  //   conversationLog.forEach(e => addMessage(e.text, e.role));
-  // }
-});
+    window.addEventListener("load", () => {
+      // const saved = localStorage.getItem("hitmaanChatLog");
+      // if (saved) {
+      //   conversationLog = JSON.parse(saved);
+      //   conversationLog.forEach(e => addMessage(e.text, e.role));
+      // }
+    });
 
-// Comment out or delete this section that saves chat logs to localStorage:
-window.addEventListener("beforeunload", () => {
-  // localStorage.setItem("hitmaanChatLog", JSON.stringify(conversationLog));
-});
-
+    // Comment out or delete this section that saves chat logs to localStorage:
+    window.addEventListener("beforeunload", () => {
+      // localStorage.setItem("hitmaanChatLog", JSON.stringify(conversationLog));
+    });
   </script>
 </body>
 </html>
-
-
